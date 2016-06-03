@@ -1,19 +1,23 @@
 main.c
  |
-  ->  plugin_api c/h -> API
-        |
-        |   proper plugins
-        |
-         ----- caesar.c     
-        |
-         ----- vigenere.c 
-        | 
-         ----- other.c
-        .
-        .
-        .
+  ->  plugin_controller.h  
+             |
+             |
+             |
+             plugin_api h -> API
+                    |
+                    |   proper plugins
+                    |
+                     ----- caesar.c     
+                    |
+                     ----- vigenere.c 
+                    | 
+                     ----- other.c
+                    .
+                    .
+                    .
 
-        /*
-         * **@note:
-         *  Every plugin must include plugin_api.h and must compiled with -shared.
-         */
+/*
+ * **@note:
+ *  Every plugin must include plugin_api.h and must compiled with -shared.
+ */
