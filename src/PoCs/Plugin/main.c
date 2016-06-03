@@ -18,7 +18,10 @@ main (int argc, char ** argv) {
 
     plugin_load (&plugin, argv[1]);
 
-    if (plugin.handle) { plugin.api.print(plugin.state); }
+    if (plugin.handle) { 
+        plugin.api.encrypt (plugin.state, NULL); 
+        plugin.api.decrypt (plugin.state, NULL); 
+    }
     
     plugin_unload(&plugin);
 

@@ -9,7 +9,8 @@ struct plugin_api_ {
     void (* finalize) (plugin_state * state);
     void (* reload) (plugin_state * state);
     void (* unload) (plugin_state * state);
-    void (* print) (plugin_state * state);
+    char * (* encrypt) (plugin_state * state, char * pure_msg);
+    char * (* decrypt) (plugin_state * state, char * encrypted_msg);
 };
 
 

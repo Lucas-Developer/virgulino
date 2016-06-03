@@ -56,9 +56,26 @@ plugin_reload (plugin_state * state) {
 }
 
 
-static void
-plugin_print (plugin_state * state) {
-    printf ("Plugin being printed !\n");
+static char *
+plugin_encrypt (plugin_state * state, char * pure_msg) {
+    printf ("Plugin encrypt method called!\n");
+
+    /*
+     * encrypt method code here ...
+     */
+
+    return NULL;
+}
+
+static char *
+plugin_decrypt (plugin_state * state, char * encrypted_msg) {
+    printf ("Plugin decrypt method called!\n");
+
+    /*
+     * decrypt method code here ...
+     */
+
+    return NULL;
 }
 
 static void
@@ -76,7 +93,8 @@ plugin_finalize (plugin_state * state) {
 const plugin_api PLUGIN_API = {
     .init = plugin_init,
     .reload = plugin_reload,
-    .print = plugin_print,
+    .encrypt = plugin_encrypt,
+    .decrypt = plugin_decrypt,
     .unload = plugin_unload,
     .finalize = plugin_finalize,
 };
