@@ -3,12 +3,17 @@
  * gcc -pedantic -Wall -O2 -fPIC main.c -o main -ldl 
  */
 
+#define _DEFAULT_SOURCE // usleep
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/stat.h>
 
 #include "plugin_controller.h"
 
 int 
 main (int argc, char ** argv) {
+    char msg[24] = "Eu sou uma pessoa legal!";
     if (argc < 2) { 
         fprintf (stderr, "Usage: %s \"./plugin.so\"\n", argv[0]);
         exit(1);
@@ -16,13 +21,14 @@ main (int argc, char ** argv) {
 
     plugin_t plugin = { 0 };
 
-    plugin_load (&plugin, argv[1]);
-
-    if (plugin.handle) { 
-        plugin.api.encrypt (plugin.state, NULL); 
-        plugin.api.decrypt (plugin.state, NULL); 
-    }
+    int i = 1;
+    plugin_load (&plugin, argv[1], (void *)&i, NULL);
     
+    if (plugin.handle) { 
+        printf ("%s\n", plugin.api.encrypt (plugin.state, msg)); 
+        printf ("%s\n", plugin.api.decrypt (plugin.state, msg));
+    } 
+
     plugin_unload(&plugin);
 
     return 0;

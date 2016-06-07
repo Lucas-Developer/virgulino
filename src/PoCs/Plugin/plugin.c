@@ -14,8 +14,8 @@
 
 /*
  * *@Note: This is the actual plugin. Every plugin should follow this same
- * sample style and architecture. Every plugin is a plugin_name.c file that
- * must include "plugin_api.h" and everything will be handled by the 
+ * example style and architecture. Every plugin is a plugin_name.c file that
+ * must includes "plugin_api.h" and everything will be handled by the 
  * plugin_controller.h"
  *
  */
@@ -69,7 +69,7 @@ plugin_encrypt (plugin_state * state, char * pure_msg) {
 
 static char *
 plugin_decrypt (plugin_state * state, char * encrypted_msg) {
-    printf ("Plugin decrypt method called!\n");
+    printf ("Plugin decrypt amethod called!\n");
 
     /*
      * decrypt method code here ...

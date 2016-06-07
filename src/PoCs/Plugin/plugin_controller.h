@@ -33,11 +33,10 @@ struct plugin_ {
 };
 
 static void
-plugin_load (plugin_t * plugin, const char * plugin_path) {
+plugin_load (plugin_t * plugin, const char * plugin_path, void * key, const char * config_filepath) {
 
     // to file stat ::
     struct stat attr;
-    
     if ( (stat (plugin_path, &attr) == 0) && (plugin->id != attr.st_ino) ) {
         if (plugin->handle) {
             plugin->api.unload (plugin->state);
@@ -46,10 +45,10 @@ plugin_load (plugin_t * plugin, const char * plugin_path) {
 
         void * handle = dlopen (plugin_path, RTLD_NOW);
         if (!handle) {
-            fprintf (stderr, "%s\n", dlerror());
+            fprintf (stderr, "%s\n", dlerror ());
             plugin->handle = NULL;
             plugin->id = 0;
-            return;
+            exit (1);
         }
 
         plugin->handle = handle;
@@ -57,16 +56,16 @@ plugin_load (plugin_t * plugin, const char * plugin_path) {
         const plugin_api * api = dlsym (plugin->handle, "PLUGIN_API");
         if (!api) {
             fprintf (stderr, "%s\n", dlerror());
-            dlclose(plugin->handle);
+            dlclose (plugin->handle);
             plugin->handle = NULL;
             plugin->id = 0;
-            return;
+            exit (1);
         }
 
         plugin->api = *api;
         
-        if (plugin->state == NULL) { plugin->state = plugin->api.init(); }
-        plugin->api.reload(plugin->state);
+        if (plugin->state == NULL) { plugin->state = plugin->api.init (key, config_filepath); }
+        plugin->api.reload (plugin->state);
     }
 }
 
