@@ -28,8 +28,8 @@
 
 #include <sys/stat.h>
 
-#include "utils.h"
-#include "steg_plugin_api.h"
+#include "../../utils.h"
+#include "../steg_plugin_api.h"
 
 /*
  * to see more about plugin_state_, take a look at plugin_api.h

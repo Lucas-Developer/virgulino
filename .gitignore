@@ -1,5 +1,7 @@
 *.swp
 *.tags
+Makefile.*
+*.log
 GPATH
 GRTAGS
 GTAGS

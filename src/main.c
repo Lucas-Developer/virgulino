@@ -22,17 +22,23 @@
  * gcc -pedantic -Wall -O2 -fPIC main.c -o main -ldl
  */
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
 #include "utils.h"
-#include "plugin_controller.h"
+#include "plugins/plugin_controller.h"
 
 int
 main (int argc, char ** argv) {
     char msg[32] = "Victor";
     if (argc < 2) {
-      printf ("Usage: %s \"./plugin_name.so\"\n", argv[0]);
+      printf ("Usage: %s \"plugin_name\"\n", argv[0]);
       exit (EXIT_SUCCESS);
     }
-	
+
+	char plugin_path [256];
+	snprintf (plugin_path, sizeof (plugin_path), "./plugins/steg/%s.so", argv[2]);
+	printf ("%s\n", plugin_path);
 //	crypt_plugin_t * plugin;
 	steg_plugin_t * plg;
 /*
@@ -45,7 +51,7 @@ main (int argc, char ** argv) {
   	
     plugin_unload (plugin, CRYPTO_PLUGIN);*/
 
-	plg = (steg_plugin_t *) plugin_load (STEG_PLUGIN, argv[2], NULL);
+	plg = (steg_plugin_t *) plugin_load (STEG_PLUGIN, plugin_path, NULL);
 
  	if (PARENT(plg)->handle) {
 		char * content;

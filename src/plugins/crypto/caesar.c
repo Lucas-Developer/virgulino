@@ -25,8 +25,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "utils.h"
-#include "crypt_plugin_api.h"
+#include "../../utils.h"
+#include "../crypt_plugin_api.h"
 
 struct plugin_state_ {	/* empty */ };
 
