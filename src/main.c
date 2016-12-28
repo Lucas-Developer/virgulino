@@ -37,27 +37,29 @@ main (int argc, char ** argv) {
     }
 
 	char plugin_path [256];
-	snprintf (plugin_path, sizeof (plugin_path), "./plugins/steg/%s.so", argv[2]);
-	printf ("%s\n", plugin_path);
-//	crypt_plugin_t * plugin;
-	steg_plugin_t * plg;
-/*
-    plugin = (crypt_plugin_t *) plugin_load (CRYPTO_PLUGIN, argv[1], NULL);
+	snprintf (plugin_path, sizeof (plugin_path), "./plugins/crypt/%s.so", argv[1]);
+	crypt_plugin_t * plugin;
+
+    plugin = (crypt_plugin_t *) plugin_load (CRYPTO_PLUGIN, plugin_path, NULL);
     if (PARENT(plugin)->handle) {
       	char key[2] = "1";
-      	printf ("Message: %s\n", plugin->api.encrypt (PARENT(plugin)->state, msg, (void *)key));
-     	printf ("Message: %s\n", plugin->api.decrypt (PARENT(plugin)->state, msg, (void *)key));
+      	printf ("encrypted: %s\n", plugin->api.encrypt (PARENT(plugin)->state, msg, (void *)key));
+     	printf ("ORIGINAL: %s\n", plugin->api.decrypt (PARENT(plugin)->state, msg, (void *)key));
     }
   	
-    plugin_unload (plugin, CRYPTO_PLUGIN);*/
+    plugin_unload (plugin, CRYPTO_PLUGIN);
 
+	bzero (plugin_path, sizeof (plugin_path));
+	snprintf (plugin_path, sizeof (plugin_path), "./plugins/steg/%s.so", argv[2]);
+
+	steg_plugin_t * plg;
 	plg = (steg_plugin_t *) plugin_load (STEG_PLUGIN, plugin_path, NULL);
 
  	if (PARENT(plg)->handle) {
 		char * content;
 		plg->api.hide (PARENT(plg)->state, msg, "hide_testing");
 		content = plg->api.unhide (PARENT(plg)->state, "hide_testing");
-		printf ("%s\n", content);
+		printf ("RECOVERED: %s\n", content);
 		free (content);
 	}
 	plugin_unload (plg, STEG_PLUGIN);
