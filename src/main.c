@@ -25,9 +25,18 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "utils.h"
-#include "plugins/plugin_controller.h"
+#include "virgulino.h"
+//#include "utils.h"
+//#include "plugins/plugin_controller.h"
 
+int
+main (int argc, char ** argv) {
+	opt_handler(argc, argv);
+	
+	return 0;
+}
+
+/*
 int
 main (int argc, char ** argv) {
     char msg[32] = "Victor";
@@ -65,5 +74,5 @@ main (int argc, char ** argv) {
 	plugin_unload (plg, STEG_PLUGIN);
 
 	return (0);
-}
+}*/
 

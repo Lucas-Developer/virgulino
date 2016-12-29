@@ -1,4 +1,6 @@
 main
+.clang_complete
+*.o
 *.so
 *.swp
 *.tags
@@ -7,5 +9,3 @@ Makefile.*
 GPATH
 GRTAGS
 GTAGS
-*.so
-bin/

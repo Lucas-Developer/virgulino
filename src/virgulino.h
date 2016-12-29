@@ -1,6 +1,6 @@
 /* -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*-  */
 /*
- * main.c
+ * virgulino.c
  * Copyright (C) 2016 userx <user_x@riseup.net>
  *
  * virgulino is free software: you can redistribute it and/or modify it
@@ -23,7 +23,284 @@
  * gcc -pedantic -Wall -O2 -fPIC virgulino.o main.c -o main -ldl
  */
 
-#include <stdio.h>
-#include "crypt_plugin_controller.h"
-void
+#ifndef _VIRGULINO_H_
+#define _VIRGULINO_H_
 
+#include "plugins/plugin_controller.h"
+#include "output.h"
+#include "utils.h"
+
+#include <stdio.h>
+#include <string.h>
+#include <getopt.h>
+#include <stdbool.h>
+
+typedef struct message_ message_t;
+struct message_ {
+	char input_file[128];
+	char output_file[128];
+	char config_file[128];
+	char crypt_plugin_name[32];
+	char steg_plugin_name[32];
+
+	char * key;
+	char * msg;
+
+	bool crypt,
+		 decrypt,
+		 steg;
+};
+
+int save_to_file (const char * filename, const char * content);
+void message_free_elements (message_t * message);
+void virgulino_exit (message_t * message, int status);
+void opt_handler (int argc, char ** argv);
+void fun_stuff (message_t * message);
+
+//functions ::
+int
+save_to_file (const char * filename, const char * content) {
+	if (!content) {
+		fprintf (stderr, "[!!] Invalid content [!!]\n");
+		return -1;
+	}
+
+	FILE * fp = fopen (filename, "a");
+	if (!fp) {
+ 		fprintf (stderr, "[!!] Error opening the file %s : ", filename);
+		perror ("");
+		return -1;
+	}
+	fprintf (fp, "%s", content);
+	fclose (fp);
+	fflush (fp);
+
+	return 0;
+}
+
+void
+message_free_elements (message_t * message) {
+	if (message->key) { free (message->key); message->key = NULL; }
+	if (message->msg) { free (message->msg); message->msg = NULL; }
+}
+
+void
+virgulino_exit (message_t * message, int status) {
+	message_free_elements (message);
+	exit (status);
+}
+
+void
+opt_handler (int argc, char ** argv) {
+	int c = 0;
+	message_t message = { 0 };
+	if (argc == 1) {
+	   usage ();
+	   exit (EXIT_SUCCESS);
+	}
+	while (1) {
+		static struct option long_options [] =  {
+		   {"help", 	no_argument, 			0, 'h'},
+		   {"encrypt", 	required_argument, 		0, 'e'},
+		   {"decrypt", 	required_argument, 		0, 'd'},
+		   {"key", 		required_argument, 		0, 'k'},
+		   {"message", 	required_argument, 		0, 'm'},
+		   {"stego", 	required_argument, 		0, 's'},
+		   {"input", 	required_argument, 		0, 'i'},
+		   {"output",  	optional_argument, 		0, 'o'},
+		   {"config", 	required_argument, 		0, 'c'},
+		   {0, 			0, 						0, 	0 }
+	   };
+
+		
+       int option_index;
+	   c = getopt_long (argc, argv, ":he:d:k:m:s:i:o::", long_options, &option_index);
+
+       if (c == -1) 
+           break;
+
+       switch (c) {
+           case 0: {
+                if (long_options[option_index].flag != 0)
+                    break;
+                printf ("option %s", long_options [option_index].name);
+                if (optarg)
+                    printf ("with arg %s\n", optarg);
+                break;
+
+           } case 'e': {
+			   message.crypt = true;
+			   strncpy (message.crypt_plugin_name, 
+						optarg, 
+						sizeof (message.crypt_plugin_name));		   
+			   break;
+           } case 'd': {
+			   message.decrypt = true;
+			   strncpy (message.crypt_plugin_name, 
+						optarg, 
+						sizeof (message.crypt_plugin_name));
+               break;
+
+           } case 'k': {
+			   message.key = strdup (optarg);
+               break;
+
+           } case 'm': {
+
+			   message.msg = strdup (optarg);
+               break;
+
+           } case 's': {
+			   message.steg = true;
+			   strncpy (message.steg_plugin_name, 
+						optarg, 
+						sizeof (message.steg_plugin_name));
+               break;
+           } case 'i': {
+			   strncpy (message.input_file, 
+						optarg, 
+						sizeof (message.input_file));
+               break;
+
+           } case 'o': {
+			   if ( (!optarg 
+					&& NULL != argv[optind]
+					&& '-' != argv[optind][0]) ) {
+
+					strncpy (message.output_file, 
+							argv[optind++], 
+							sizeof (message.output_file) );
+
+			   }
+			   break;
+
+		   } case 'c': {
+			   strncpy (message.config_file, 
+						optarg, 
+						sizeof (message.config_file));
+			   break;
+
+		   } case '?': {
+               help ();
+			   virgulino_exit(&message, EXIT_SUCCESS);
+               break;
+
+           } case 'h': {
+               help ();
+			   virgulino_exit(&message, EXIT_SUCCESS);
+               break;
+
+           } default: {
+               usage ();
+			   virgulino_exit(&message, EXIT_SUCCESS);
+               break;
+
+           }
+       }
+   }
+   
+   if (optind < argc) {
+       printf ("non-option argv-elements: ");
+       while (optind < argc) {
+           printf ("%s ", argv[optind ++]);
+       }
+       putchar ('\n');
+       usage ();
+       exit (EXIT_SUCCESS);
+   }
+	fun_stuff (&message);
+}
+
+void
+fun_stuff (message_t * message) {
+	crypt_plugin_t * crypt_plugin;
+	steg_plugin_t * steg_plugin;
+
+	char plugin_path[128];
+
+	if (!message->crypt && !message->decrypt) {
+		usage ();
+		virgulino_exit (message, EXIT_SUCCESS);
+	}
+
+	if (!message->key || 
+				(!message->msg && !strlen (message->input_file) ) || 
+				!strlen (message->crypt_plugin_name) ) {
+
+			usage ();
+			virgulino_exit(message, EXIT_SUCCESS);
+	}
+
+	if (message->crypt) {
+		snprintf (plugin_path, sizeof (plugin_path), 
+				"./plugins/crypt/%s.so", message->crypt_plugin_name);
+
+		crypt_plugin = (crypt_plugin_t *) plugin_load (CRYPTO_PLUGIN, 
+														plugin_path, 
+														message->config_file);
+		if (message->msg) {
+			crypt_plugin->api.encrypt (crypt_plugin->parent.state, 
+										message->msg, message->key);
+			plugin_unload (crypt_plugin, CRYPTO_PLUGIN);
+
+			free (message->key);
+			message->key = NULL;
+
+			if (message->steg) {
+				snprintf (plugin_path, sizeof (plugin_path), 
+															"./plugins/steg/%s.so", 
+															message->steg_plugin_name);
+
+				steg_plugin = plugin_load (STEG_PLUGIN, plugin_path, message->config_file);
+				if (!message->output_file) {
+					fprintf (stderr, "[!!] no output_file paramenter found [!!]\n");
+					plugin_unload (steg_plugin, STEG_PLUGIN);
+					virgulino_exit (message, EXIT_SUCCESS);
+				}
+				steg_plugin->api.hide (steg_plugin->parent.state, 
+										message->msg, 
+										message->output_file);
+				plugin_unload (steg_plugin, STEG_PLUGIN);
+			}
+		}
+	} else {
+		if (message->steg) {
+			snprintf (plugin_path, sizeof (plugin_path), 
+														"./plugins/steg/%s.so", 
+														message->steg_plugin_name);
+
+			steg_plugin = plugin_load (STEG_PLUGIN, plugin_path, message->config_file);
+			if (!message->output_file) {
+				fprintf (stderr, "[!!] no output_file paramenter found [!!]\n");
+				plugin_unload (steg_plugin, STEG_PLUGIN);
+				virgulino_exit (message, EXIT_SUCCESS);
+			}
+			char * content = steg_plugin->api.unhide (steg_plugin->parent.state, 
+														message->input_file);
+			plugin_unload (steg_plugin, STEG_PLUGIN);
+			if (!content || !message->crypt_plugin_name) {
+				virgulino_exit(message, EXIT_FAILURE);
+			}
+
+			snprintf (plugin_path, sizeof (plugin_path), 
+				"./plugins/crypt/%s.so", message->crypt_plugin_name);
+
+			crypt_plugin = (crypt_plugin_t *) plugin_load (CRYPTO_PLUGIN, 
+														plugin_path, 
+														message->config_file);
+			crypt_plugin->api.decrypt (crypt_plugin->parent.state, 
+										content, message->key);
+			plugin_unload (crypt_plugin, CRYPTO_PLUGIN);
+			if (strlen (message->output_file) > 0) {
+				save_to_file (message->output_file, content);
+			} else {
+				printf ("BEGIN MESSAGE\n\n%s\n\nEND MESSAGE\n", content);
+			}
+			free (content);
+		}
+
+	}
+	virgulino_exit (message, EXIT_SUCCESS);
+}
+
+#endif /* _VIRGULINO_H_ */

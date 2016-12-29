@@ -1,5 +1,5 @@
 /*
- * crypto_plugin_controller.h
+ * plugin_controller.h
  *
  * Copyright (C) 2016 - userx  
  *
@@ -29,9 +29,9 @@
 #include "crypt_plugin_api.h"
 #include "steg_plugin_api.h"
 
-#include "utils.h"
+#include "../utils.h"
 
-#define PARENT(obj) 	((plugin_t *)obj)
+#define PARENT(obj) 	((plugin_t *)(obj))
 #define PLUGIN(obj) 	((plugin_t)&obj)
 #define CRYPT(obj) 		((crypt_plugin_t *)obj)
 #define STEG(obj) 		((steg_plugin_t *)obj)
@@ -65,7 +65,7 @@ plugin_load (PluginType type , const char * plugin_path, const char * config_fil
 	void * plugin = NULL;
 
 	if ( (stat (plugin_path, &attr) ) != 0 ) {
-		fprintf (stderr, "Error opening the file file: ");
+		fprintf (stderr, "Error opening the file %s: ", plugin_path);
  		perror ("");
 		exit (EXIT_FAILURE);
 	}
