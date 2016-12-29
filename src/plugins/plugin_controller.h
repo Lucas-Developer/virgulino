@@ -86,6 +86,7 @@ plugin_load (PluginType type , const char * plugin_path, const char * config_fil
 		if (!api) {
 			fprintf (stderr, "%s\n", dlerror () );
 			dlclose (parent.handle);
+			free (plugin);
 			exit (EXIT_FAILURE);
 		}
 
@@ -93,6 +94,13 @@ plugin_load (PluginType type , const char * plugin_path, const char * config_fil
 		CRYPT(plugin)->api = *api;
 		CRYPT(plugin)->parent.handle = parent.handle;
 		CRYPT(plugin)->parent.state = CRYPT(plugin)->api.init(config_filepath); 
+		
+		if (!(CRYPT(plugin)->parent.state)) {
+			fprintf (stderr, "Error: allocatting memory!\n");
+			dlclose (PARENT(plugin)->handle);
+			free (plugin);
+			exit (EXIT_FAILURE);
+		}
 		
 
 	} else {
@@ -103,6 +111,7 @@ plugin_load (PluginType type , const char * plugin_path, const char * config_fil
 		if (!api) {
 			fprintf (stderr, "%s\n", dlerror () );
 			dlclose (parent.handle);
+			free (plugin);
 			exit (EXIT_FAILURE);
 		}
 
@@ -110,7 +119,12 @@ plugin_load (PluginType type , const char * plugin_path, const char * config_fil
 		STEG(plugin)->api = *api;
 		STEG(plugin)->parent.handle = parent.handle;
 		STEG(plugin)->parent.state = STEG(plugin)->api.init(config_filepath);	
-
+		if (!(STEG(plugin)->parent.state)) {
+			fprintf (stderr, "Error: allocatting memory!\n");
+			dlclose (STEG(plugin)->parent.handle);
+			free (plugin);
+			exit (EXIT_FAILURE);
+		}
 	}
 
 	return plugin;

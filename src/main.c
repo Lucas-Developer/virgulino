@@ -18,7 +18,12 @@
  */
 
 /* @note: Compiling instructions
- * gcc -pedantic -Wall -O2 -fPIC -shared plugin.* -o plugin.so -ldl
+ * **@ Plugins:
+ * gcc -pedantic -Wall -O2 -fPIC -shared plugins/crypt/plugin.c -o plugins/crypt/plugin.so -ldl
+ * gcc -pedantic -Wall -O2 -fPIC -shared plugins/steg/plugin.c -o plugins/steg/plugin.so -ldl 
+ *
+ * **@ main:
+ * gcc -pedantic -Wall -O2 -fPIC output.* -c 
  * gcc -pedantic -Wall -O2 -fPIC main.c -o main -ldl
  */
 #include <stdio.h>
@@ -26,8 +31,6 @@
 #include <stdlib.h>
 
 #include "virgulino.h"
-//#include "utils.h"
-//#include "plugins/plugin_controller.h"
 
 int
 main (int argc, char ** argv) {
@@ -36,43 +39,4 @@ main (int argc, char ** argv) {
 	return 0;
 }
 
-/*
-int
-main (int argc, char ** argv) {
-    char msg[32] = "Victor";
-    if (argc < 2) {
-      printf ("Usage: %s \"plugin_name\"\n", argv[0]);
-      exit (EXIT_SUCCESS);
-    }
-
-	char plugin_path [256];
-	snprintf (plugin_path, sizeof (plugin_path), "./plugins/crypt/%s.so", argv[1]);
-	crypt_plugin_t * plugin;
-
-    plugin = (crypt_plugin_t *) plugin_load (CRYPTO_PLUGIN, plugin_path, NULL);
-    if (PARENT(plugin)->handle) {
-      	char key[2] = "1";
-      	printf ("encrypted: %s\n", plugin->api.encrypt (PARENT(plugin)->state, msg, (void *)key));
-     	printf ("ORIGINAL: %s\n", plugin->api.decrypt (PARENT(plugin)->state, msg, (void *)key));
-    }
-  	
-    plugin_unload (plugin, CRYPTO_PLUGIN);
-
-	bzero (plugin_path, sizeof (plugin_path));
-	snprintf (plugin_path, sizeof (plugin_path), "./plugins/steg/%s.so", argv[2]);
-
-	steg_plugin_t * plg;
-	plg = (steg_plugin_t *) plugin_load (STEG_PLUGIN, plugin_path, NULL);
-
- 	if (PARENT(plg)->handle) {
-		char * content;
-		plg->api.hide (PARENT(plg)->state, msg, "hide_testing");
-		content = plg->api.unhide (PARENT(plg)->state, "hide_testing");
-		printf ("RECOVERED: %s\n", content);
-		free (content);
-	}
-	plugin_unload (plg, STEG_PLUGIN);
-
-	return (0);
-}*/
 
