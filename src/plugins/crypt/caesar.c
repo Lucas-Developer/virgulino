@@ -31,18 +31,18 @@
 struct plugin_state_ {	/* empty */ };
 
 static plugin_state *
-crypt_plugin_init (const char * config_filepath) {
+caesar_init (const char * config_filepath) {
 	return (plugin_state *) wr_calloc (1, sizeof (plugin_state));
 }
 
 static void
-crypt_plugin_reload (plugin_state * state) {
+caesar_reload (plugin_state * state) {
 	free (state);
-	state = crypt_plugin_init (NULL);
+	state = caesar_init (NULL);
 }
 
 static char *
-crypt_plugin_encrypt (const plugin_state * state, char * pure_msg, void * key) {
+caesar_encrypt (const plugin_state * state, char * pure_msg, void * key) {
 	int salt = atoi ((char *)key);
     
     size_t size = strlen (pure_msg);
@@ -54,7 +54,7 @@ crypt_plugin_encrypt (const plugin_state * state, char * pure_msg, void * key) {
 }	
 
 static char *
-crypt_plugin_decrypt (const plugin_state * state , char * encrypted_msg, void * key) {
+caesar_decrypt (const plugin_state * state , char * encrypted_msg, void * key) {
 	int salt = atoi ( (char *)key);
 
     size_t size = strlen (encrypted_msg);
@@ -66,21 +66,21 @@ crypt_plugin_decrypt (const plugin_state * state , char * encrypted_msg, void * 
 }
 
 static void 
-crypt_plugin_unload (plugin_state * state) { /* empty */ }
+caesar_unload (plugin_state * state) { /* empty */ }
 
 static void
-crypt_plugin_finalize (plugin_state * state) {
+caesar_finalize (plugin_state * state) {
 	if (state) { free (state); }
 	state = NULL;
 }
 
 const crypt_plugin_api CRYPT_PLUGIN_API = {
-	.init = crypt_plugin_init,
-	.reload = crypt_plugin_reload,
-	.unload = crypt_plugin_unload,
-	.finalize = crypt_plugin_finalize,
+	.init = caesar_init,
+	.reload = caesar_reload,
+	.unload = caesar_unload,
+	.finalize = caesar_finalize,
 
-	.encrypt = crypt_plugin_encrypt,
-	.decrypt = crypt_plugin_decrypt,
+	.encrypt = caesar_encrypt,
+	.decrypt = caesar_decrypt,
 
 };

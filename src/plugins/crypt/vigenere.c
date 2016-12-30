@@ -34,18 +34,18 @@
 struct plugin_state_ {	/* empty */ };
 
 static plugin_state *
-crypt_plugin_init (const char * config_filepath) {
+vigenere_init (const char * config_filepath) {
 	return (plugin_state *) wr_calloc (1, sizeof (plugin_state));
 }
 
 static void
-crypt_plugin_reload (plugin_state * state) {
+vigenere_reload (plugin_state * state) {
 	free (state);
-	state = crypt_plugin_init (NULL);
+	state = vigenere_init (NULL);
 }
 
 static char *
-crypt_plugin_encrypt (const plugin_state * state, char * pure_msg, void * key) {
+vigenere_encrypt (const plugin_state * state, char * pure_msg, void * key) {
 	char * vkey = (char *) key;
     
      int cn = 0;
@@ -62,7 +62,7 @@ crypt_plugin_encrypt (const plugin_state * state, char * pure_msg, void * key) {
 }	
 
 static char *
-crypt_plugin_decrypt (const plugin_state * state , char * encrypted_msg, void * key) {
+vigenere_decrypt (const plugin_state * state , char * encrypted_msg, void * key) {
 	char * vkey = (char *) key;
 
     int cn = 0;
@@ -78,20 +78,20 @@ crypt_plugin_decrypt (const plugin_state * state , char * encrypted_msg, void * 
 }
 
 static void 
-crypt_plugin_unload (plugin_state * state) { /* empty */ }
+vigenere_unload (plugin_state * state) { /* empty */ }
 
 static void
-crypt_plugin_finalize (plugin_state * state) {
+vigenere_finalize (plugin_state * state) {
 	if (state) { free (state); }
 	state = NULL;
 }
 
 const crypt_plugin_api CRYPT_PLUGIN_API = {
-	.init = crypt_plugin_init,
-	.reload = crypt_plugin_reload,
-	.unload = crypt_plugin_unload,
-	.finalize = crypt_plugin_finalize,
+	.init = vigenere_init,
+	.reload = vigenere_reload,
+	.unload = vigenere_unload,
+	.finalize = vigenere_finalize,
 
-	.encrypt = crypt_plugin_encrypt,
-	.decrypt = crypt_plugin_decrypt,
+	.encrypt = vigenere_encrypt,
+	.decrypt = vigenere_decrypt,
 };
