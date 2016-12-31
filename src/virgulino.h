@@ -35,6 +35,9 @@
 #include <getopt.h>
 #include <stdbool.h>
 
+#define LOCAL_CONFIG_FILE 		"./virgulino.conf"
+#define WIDESYSTEM_CONFIG_FILE 	"/etc/virgulino.conf"
+#define MAX_SIZE 				512
 
 typedef struct message_ message_t;
 struct message_ {
@@ -52,6 +55,7 @@ struct message_ {
 		 steg;
 };
 
+char * search_plugin_dir (void);
 int save_to_file (const char * filename, const char * content);
 void message_free_elements (message_t * message);
 void virgulino_exit (message_t * message, int status);
@@ -59,6 +63,63 @@ void opt_handler (int argc, char ** argv);
 void fun_stuff (message_t * message);
 
 //functions ::
+char *
+search_plugin_dir (void) {
+	struct stat st = { 0 };
+	FILE * fp = NULL;
+	char * cp;
+	char c;
+	if (!stat (LOCAL_CONFIG_FILE, &st)) {
+ 		cp = (char *) calloc(st.st_size, sizeof (char));
+		fp = fopen (LOCAL_CONFIG_FILE, "r");
+		if (fp) {
+			int match = 0;
+			int i = 0;
+			while (!feof (fp)) {
+				c = fgetc (fp);
+				if (c == 0x0a) {
+					break;
+				}
+				if (match == 2) {
+					cp [i] = c;
+					i++;
+				} else if (match > 2) {
+					break;
+				}
+				if (c == ' ') {
+					match ++;
+				}
+			}
+			return cp;
+		}
+	} else 	if (!stat (WIDESYSTEM_CONFIG_FILE, &st)) {
+ 		cp = (char *) calloc(st.st_size, sizeof (char));
+		fp = fopen (LOCAL_CONFIG_FILE, "r");
+		if (fp) {
+			int match = 0;
+			int i = 0;
+			while (!feof (fp)) {
+				c = fgetc (fp);
+				if (c == 0x0a) {
+					break;
+				}
+				if (match == 2) {
+					cp [i] = c;
+					i++;
+				} else if (match > 2) {
+					break;
+				}
+				if (c == ' ') {
+					match ++;
+				}
+			}
+			return cp;
+		}
+	}
+
+	return NULL;
+}
+
 int
 save_to_file (const char * filename, const char * content) {
 	if (!content) {
@@ -95,10 +156,12 @@ void
 opt_handler (int argc, char ** argv) {
 	int c = 0;
 	message_t message = { 0 };
+
 	if (argc == 1) {
 	   usage ();
 	   exit (EXIT_SUCCESS);
 	}
+
 	while (1) {
 		static struct option long_options [] =  {
 		   {"help", 	no_argument, 			0, 'h'},
@@ -217,10 +280,20 @@ fun_stuff (message_t * message) {
 	crypt_plugin_t * crypt_plugin;
 	steg_plugin_t * steg_plugin;
 
-	char plugin_path[128];
+	char plugin_full_path [MAX_SIZE];
+	char * plugin_path = NULL;
+	plugin_path = search_plugin_dir ();
+	
+	if (plugin_path == NULL) {
+		fprintf (stderr, "[!!] No config file found, please take a look at the manpage [!!]\n");
+		free (plugin_path);
+		virgulino_exit (message, EXIT_SUCCESS);
+	}
 
 	if (!message->crypt && !message->decrypt) {
 		usage ();
+
+		free (plugin_path);
 		virgulino_exit (message, EXIT_SUCCESS);
 	}
 
@@ -229,15 +302,17 @@ fun_stuff (message_t * message) {
 				!strlen (message->crypt_plugin_name) ) {
 
 			usage ();
+
+			free (plugin_path);
 			virgulino_exit(message, EXIT_SUCCESS);
 	}
 
 	if (message->crypt) {
-		snprintf (plugin_path, sizeof (plugin_path), 
-				"./plugins/crypt/%s.so", message->crypt_plugin_name);
+		snprintf (plugin_full_path, sizeof (plugin_full_path), 
+				"%s/crypt/%s.so",plugin_path, message->crypt_plugin_name);
 
 		crypt_plugin = (crypt_plugin_t *) plugin_load (CRYPTO_PLUGIN, 
-														plugin_path, 
+														plugin_full_path, 
 														message->config_file);
 		if (message->msg) {
 			crypt_plugin->api.encrypt (crypt_plugin->parent.state, 
@@ -248,16 +323,19 @@ fun_stuff (message_t * message) {
 			message->key = NULL;
 
 			if (message->steg) {
-				snprintf (plugin_path, sizeof (plugin_path), 
-															"./plugins/steg/%s.so", 
+				snprintf (plugin_full_path, sizeof (plugin_full_path), "%s/steg/%s.so", 
+															plugin_path,
 															message->steg_plugin_name);
 
-				steg_plugin = plugin_load (STEG_PLUGIN, plugin_path, message->config_file);
+				steg_plugin = plugin_load (STEG_PLUGIN, plugin_full_path, message->config_file);
+
 				if (!message->output_file) {
 					fprintf (stderr, "[!!] no output_file paramenter found [!!]\n");
 					plugin_unload (steg_plugin, STEG_PLUGIN);
+					free (plugin_path);
 					virgulino_exit (message, EXIT_SUCCESS);
 				}
+
 				steg_plugin->api.hide (steg_plugin->parent.state, 
 										message->msg, 
 										message->output_file);
@@ -266,32 +344,38 @@ fun_stuff (message_t * message) {
 		}
 	} else {
 		if (message->steg) {
-			snprintf (plugin_path, sizeof (plugin_path), 
-														"./plugins/steg/%s.so", 
+			snprintf (plugin_full_path, sizeof (plugin_full_path), "%s/steg/%s.so", 
+														plugin_path,
 														message->steg_plugin_name);
 
-			steg_plugin = plugin_load (STEG_PLUGIN, plugin_path, message->config_file);
+			steg_plugin = plugin_load (STEG_PLUGIN, plugin_full_path, message->config_file);
 			if (!message->output_file) {
 				fprintf (stderr, "[!!] no output_file paramenter found [!!]\n");
 				plugin_unload (steg_plugin, STEG_PLUGIN);
+				free (plugin_path);
 				virgulino_exit (message, EXIT_SUCCESS);
 			}
 			char * content = steg_plugin->api.unhide (steg_plugin->parent.state, 
 														message->input_file);
 			plugin_unload (steg_plugin, STEG_PLUGIN);
 			if (!content || !message->crypt_plugin_name) {
+				free (plugin_path);
 				virgulino_exit(message, EXIT_FAILURE);
 			}
 
-			snprintf (plugin_path, sizeof (plugin_path), 
-				"./plugins/crypt/%s.so", message->crypt_plugin_name);
+			snprintf (plugin_full_path, sizeof (plugin_full_path), "%s/crypt/%s.so",
+														plugin_path,
+														message->crypt_plugin_name);
 
 			crypt_plugin = (crypt_plugin_t *) plugin_load (CRYPTO_PLUGIN, 
-														plugin_path, 
+														plugin_full_path, 
 														message->config_file);
+
 			crypt_plugin->api.decrypt (crypt_plugin->parent.state, 
 										content, message->key);
+
 			plugin_unload (crypt_plugin, CRYPTO_PLUGIN);
+
 			if (strlen (message->output_file) > 0) {
 				save_to_file (message->output_file, content);
 			} else {
