@@ -71,7 +71,7 @@ vigenere_decrypt (const plugin_state * state , char * encrypted_msg, void * key)
         if (i > 0) 
             encrypted_msg [(i - 1)] = cn;
 
-        for (cn = (((int)encrypted_msg [i]) - ((int)vkey [i])); cn < LOWER_CHAR; cn = HIGHER_CHAR - (LOWER_CHAR -cn));
+        for (cn = ((int) encrypted_msg[i] - ((int)vkey[i])); cn < LOWER_CHAR; cn = HIGHER_CHAR - (LOWER_CHAR - cn));
    }
 
 	return encrypted_msg;

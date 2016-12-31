@@ -70,7 +70,7 @@ search_plugin_dir (void) {
 	char * cp;
 	char c;
 	if (!stat (LOCAL_CONFIG_FILE, &st)) {
- 		cp = (char *) calloc(st.st_size, sizeof (char));
+ 		cp = (char *) wr_calloc(st.st_size, sizeof (char));
 		fp = fopen (LOCAL_CONFIG_FILE, "r");
 		if (fp) {
 			int match = 0;
@@ -90,6 +90,9 @@ search_plugin_dir (void) {
 					match ++;
 				}
 			}
+			fclose (fp);
+			fflush (fp);
+
 			return cp;
 		}
 	} else 	if (!stat (WIDESYSTEM_CONFIG_FILE, &st)) {
@@ -113,6 +116,9 @@ search_plugin_dir (void) {
 					match ++;
 				}
 			}
+			fclose (fp);
+			fflush (fp);
+		
 			return cp;
 		}
 	}
