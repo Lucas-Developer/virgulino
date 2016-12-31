@@ -11,6 +11,9 @@ DOC_FILE_3=virgulino.3
 DOC_DEST_3=/usr/share/man/man3
 LIB_DEST=/usr/include/virgulino
 LIB_SOURCE=src
+PLUGINS_DIR=$(LIB_SOURCE)/plugins
+CRYPT_DIR=$(PLUGINS_DIR)/crypt 
+STEG_DIR=$(PLUGINS_DIR)/steg
 OBJ_SOURCE=bin
 OBJS=	$(OBJ_SOURCE)/cypher.o \
 		$(OBJ_SOURCE)/cypher_utils.o \
@@ -21,15 +24,16 @@ OBJS=	$(OBJ_SOURCE)/cypher.o \
 
 all: default
 
-default: $(OBJS) $(LIB_SOURCE)/main.c
-	$(CC) $^ $(CVERSION) $(SWITCH) $(DEST)
-
-$(OBJ_SOURCE)/%.o: $(LIB_SOURCE)/%.c
-	$(CC) -c $< -o $@
+default:
+	make -C $(LIB_SOURCE) all
+	make -C $(CRYPT_DIR) plugins
+	make -C $(STEG_DIR) plugins
 
 clean:
-	rm -f $(DEST) 
-	rm -f $(OBJS)
+	make -C $(LIB_SOURCE) clean
+	make -C $(CRYPT_DIR) clean
+	make -C $(STEG_DIR) clean
+
 
 install:
 	mv $(DEST) $(DESTDIR)

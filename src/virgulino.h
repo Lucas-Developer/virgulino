@@ -35,6 +35,7 @@
 #include <getopt.h>
 #include <stdbool.h>
 
+
 typedef struct message_ message_t;
 struct message_ {
 	char input_file[128];
@@ -304,3 +305,4 @@ fun_stuff (message_t * message) {
 }
 
 #endif /* _VIRGULINO_H_ */
+
