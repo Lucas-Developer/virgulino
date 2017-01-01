@@ -44,7 +44,7 @@ install:
 	mkdir -p $(LIB_DEST)
 	cp $(LIB_SOURCE)/*.h $(LIB_DEST)
 	cp $(DOC_SOURCE)/$(DOC_FILE_3) $(DOC_DEST_3)
-	echo $(PLUGINS_INSTALL_PLACE) > $(CONFIG_DIST)/$(CONFIG_FILE)
+	echo set plugin_dir $(PLUGINS_INSTALL_PLACE) > $(CONFIG_DIST)/$(CONFIG_FILE)
 	mkdir -p $(PLUGINS_INSTALL_PLACE)/crypt
 	mkdir -p $(PLUGINS_INSTALL_PLACE)/steg
 	cp -rf $(PLUGINS_DIR)/crypt/*.so $(PLUGINS_INSTALL_PLACE)/crypt

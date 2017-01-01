@@ -94,12 +94,17 @@ search_plugin_dir (void) {
 			}
 			fclose (fp);
 			fflush (fp);
-
+			debug (1);
 			return cp;
 		}
 	} else 	if (!stat (WIDESYSTEM_CONFIG_FILE, &st)) {
- 		cp = (char *) calloc(st.st_size, sizeof (char));
-		fp = fopen (LOCAL_CONFIG_FILE, "r");
+ 		cp = (char *) wr_calloc(st.st_size, sizeof (char));
+		fp = fopen (WIDESYSTEM_CONFIG_FILE, "r");
+		if (!fp) {
+			fprintf (stderr, "ERROR OPENING THE FILE %s : ", WIDESYSTEM_CONFIG_FILE);
+			perror ("");
+			return NULL;
+		}
 		if (fp) {
 			int match = 0;
 			int i = 0;
@@ -121,10 +126,11 @@ search_plugin_dir (void) {
 			fclose (fp);
 			fflush (fp);
 		
+			debug (2);
 			return cp;
 		}
 	}
-
+	debug (3);
 	return NULL;
 }
 
@@ -331,7 +337,7 @@ void encrypt (message_t * message) {
 	
 	snprintf (plugin_full_path, sizeof (plugin_full_path), 
 			"%s/crypt/%s.so",plugin_path, message->crypt_plugin_name);
-
+	printf ("%s\n", plugin_full_path);
 	crypt_plugin = (crypt_plugin_t *) plugin_load (CRYPTO_PLUGIN, 
 														plugin_full_path, 
 														message->config_file);
